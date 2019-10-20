@@ -1,9 +1,6 @@
 # Computer Network
-
 ## :Mid-term Test Summary
-
-
-
+---
 ### Internet Architecture
 
 Protocol : 규칙, 메시지의 형식과 순서, 송*수신시 동작을 정의한다
@@ -151,18 +148,57 @@ IPv4-mapped IPv6 address : IPv4 -> IPv6. 0::FF FF:{IPv4 주소}
 
 ### Transport Layer
 
+특징 : Unique Endpoint (IP + Port). TCP or UDP
+
+- Port : 프로세스를 구분하는 논리적 번호. 프로토콜 및 IP 주소와 연관되면 Unique하다. <TCP, 1.2.3.4, 80>
+  - System (Well-known 0~1023), User (Registered 1024~49151), Dynamic or Private (그 외)로 구분된다.
+
+기능 : 포트를 통한 어플리케이션 간 통신, Multiplexing, 신뢰성, Flow control, Congestion control, Connection.
+
+- 패킷을 받는다 - 목적지 Port 번호에 따라 맞는 Application에게 전달한다
+- IP Layer에서는 IP Header의 프로토콜 필드에 따라 TCP로 전달할지 (6) / UDP로 전달할지 (17) 결정함
+- **UDP** : **Dst IP와 포트 번호**를 확인하여 상위 레이어로 전달함
+- **TCP** : **Dst IP, 포트 + Src IP, 포트**까지 확인하여 상위 레이어로 전달함
+
+Socket : Application과 Transport Layer 사이의 인터페이스. TCP 또는 UDP에서 올린 패킷이 소켓의 큐에 쌓임
 
 
 
+### Datalink Layer
+
+MAC (Media Access Control) 주소 : NIC (Network Interface Card) 장비들이 갖는 6 바이트의 물리적 고유 주소
+
+- **OUI** (organazationally Unique Identifier, 3 바이트) + **UAA** (Universally Administered Address, 3 바이트)로 구성된다.
+  - OUI : 제조사마다 할당된 고유 번호. IEEE에서 제공.
+    - 왼쪽에서 7번째 비트는 해당 주소가 IEEE에서 제공한게 아닌지(1)  / 8번째 비트는 Multicast (1)인지 Unicast인지이다.
+  - UAA : 이거 UAA 아니고 **NIC Specific**. 즉, 제조사에서 제품에 매기는 일련번호임 피피티 이상
+
+EtherType : Ethernet Frame에 포함된 2 바이트 크기의 필드. 어떤 프로토콜인지 표시된다.
+
+- EX. 0x8000 = IPv4 / 0x0806 = ARP / 0x8600 = IPv6
+
+---
+
+### DHCP
 
 
 
+- 
+
+---
+
+### DNS
 
 
 
+- 
 
 ---
 
 ### IP
 
 Identity : 기기 자체 / Identifier : 기기를 구별할 수 있게 하는 요소들. 기종, 물리주소 등
+
+
+
+[프로토콜 스택 그림]
