@@ -1,6 +1,5 @@
-# Computer Network
-## :Mid-term Test Summary
----
+# Computer Network :Mid-term Test Summary
+
 ### Internet Architecture
 
 Protocol : 규칙, 메시지의 형식과 순서, 송*수신시 동작을 정의한다
