@@ -1,5 +1,4 @@
 # Computer Network :Mid-term Test Summary
-
 ### Internet Architecture
 
 Protocol : 규칙, 메시지의 형식과 순서, 송*수신시 동작을 정의한다
@@ -161,7 +160,7 @@ IPv4-mapped IPv6 address : IPv4 -> IPv6. 0::FF FF:{IPv4 주소}
 
 Socket : Application과 Transport Layer 사이의 인터페이스. TCP 또는 UDP에서 올린 패킷이 소켓의 큐에 쌓임
 
-
+---
 
 ### Datalink Layer
 
@@ -180,17 +179,104 @@ EtherType : Ethernet Frame에 포함된 2 바이트 크기의 필드. 어떤 프
 
 ### DHCP
 
+DHCP : **IP 주소 할당**을 위한 프로토콜. Dynamic Host Configuration Protocol
 
+- UDP를 통해 통신하는 Application layer의 프로토콜이다.
+- Unique한 IP 주소의 할당 및 관리를 네트워크 관리자에 의해 중앙 관리하도록 한다.
+- 클라이언트에서 별도의 재설정 없이 할당받을 수 있으며, 네트워크 관리자가 일일이 할당할 필요가 없도록 설계되었다.
+- BOOTP (Bootstrap Protocol)의 확장판이다.
+- IP 할당 : 자동할당 (영구적인 할당), 동적할당 (기간제 IP 할당), 수동할당이 잇다.
+- **장점** : 중앙 관리, 동적 할당, 끊김 없는 IP 설정, 확장성 
 
-- 
+과정 : Discover - Offer - Request - Acknowledge
+
+1. Discover : IP 달라고 요구함. (Src = 0.0.0.0 / Dst = 255.255.255.255)
+2. Offer : IP 주소 제안 (Src = Server IP / Dst = 255.255.255.255)
+3. Request : 이거 진짜 쓴다? (Src = 0.0.0.0 / Dst = 255.255.255.255)
+4. Acknowledge : ㅇㅋ 그거 써라 (Src = Server IP / Dst = 255.255.255.255)
+
+- 여러 DHCP 서버가 Discover 패킷을 받으면, 각자 클라이언트에게 IP를 제안한다.
+- 옵션 필드의 Requested IP Address에 클라이언트가가 선택한 IP주소를 박고 Offer했던 서버들에게 Request 보낸다.
+
+Relay Agent : 라우터나 게이트웨이 등의 DHCP 패킷을 전달해주는 장비
+
+- Broadcast 패킷은 기본적으로 라우터를 넘어가지 않도록 차단한다.
+- 그러나 DHCP 패킷의 경우 라우터를 지나며 (Src = 라우터 IP / Dst = 라우터가 알고있는 DHCP 서버 주소)로 변경하여 전달한다.
+- 또 서버에서는 Relay Agent에게 Unicast로 응답하고, 이를 Broadcast로 서브넷에 뿌려준다.
+
+**Message Format**
+
+- op : 1 = BOOTREQUEST / 2 = BOOTREPLY
+- hops : 릴레이 에이전트를 지날때마다 1씩 증가
+- secs : 클라이언트에서 재할당 요청시 주로 사용. IP 할당 후 지난 시간
+- flags : 맨 앞 비트 : 브로드캐스트 비트. 나머지 = 0
+- **options** : 3가지 필수 옵션들 + 기타 등등
+  - IP 주소 Subnet Mask (code 1) : 라우팅을 위해
+  - Default Gateway (code 3) : 다음 홉을 모를 때 보낼 기본 IP 주소
+  - DNS 서버 IP 주소 (code 6)
+
+<table style="text-align:center">
+  <tr>
+    <td>op (1)</td>
+    <td>htype (1)</td>
+    <td>hlen (1)</td>
+    <td>hops (1)</td>
+  </tr>
+  <tr>
+    <td colspan="4">transaction ID (4)</td>
+  </tr>
+  <tr>
+    <td colspan="2">secs (2)</td>
+    <td colspan="2">flags (2)</td>
+  </tr>
+  <tr>
+    <td colspan="4">Client IP (4) = 현재 클라이언트의 주소</td>
+  </tr>
+  <tr>
+    <td colspan="4"><b>Your IP</b> (4) = 할당받을, 제안받은 IP 주소</td>
+  </tr>
+  <tr>
+    <td colspan="4">Server IP (4)</td>
+  </tr>
+  <tr>
+    <td colspan="4">Relay Agent IP (4) = 통과한 Relay agent의 IP</td>
+  </tr>
+  <tr>
+    <td colspan="4">chaddr (4) = Client Hardware = MAC</td>
+  </tr>
+  <tr>
+    <td colspan="4">Server Host Name (4)</td>
+  </tr>
+  <tr>
+    <td colspan="4"><b>Options</b> (4)</td>
+  </tr>
+</table>
 
 ---
 
 ### DNS
 
+DNS : **Domain 이름을 IP 주소로 매핑**해주는 프로토콜. Domain Name System
 
+- 도메인은 계층적으로 이루어짐
+  - EX. www.naver.com = . (root) > com (Top-level Domain) > naver (Second-level Domain)> www (Subdomain)
+- Endpoint에서는 **DNS Resolver**에게 쿼리를 보내고, DNS Resolver가 DNS Name Server들에게 물어물어 IP 주소를 응답한다.
 
-- 
+**DNS Query** : Recursive 쿼리와 Iterative 쿼리로 구분된다.
+
+- Recursive 쿼리 : End user가 Resolver에게 보내는 쿼리로, 최종적인 IP 주소를 응답받을 수 있다.
+- Iterative 쿼리 : **Resolver**가 Name Server에게 보내는 쿼리로, 다음으로 질의을 보내야하는 네임 서버의 주소를 얻을 수 있다.
+  - 위에 예시로 써논 순서대로 각 도메인 네임 서버에 질의를 보내게 된다. 마지막에는 IP 주소를 얻을 수 있다.
+  - Resolver는 얻은 IP 주소를 캐시에 넣고, End user에게 응답해준다.
+
+Delegation : 여러 네임서버의 존들을 묶어서 공통으로 관리하는 거
+
+- Zone : 한 네임서버에서 관리하는 범위 (EX. naver.com에서 cafe.naver.com, www.naver.com을 관리하면 같은 Zone)
+
+**Message Format **: Header - Question - Answer - Authority - Additional로 구성된다. Header = 12바이트. 나머진 가변길이
+
+- 메시지가 512 바이트보다 작으면 UDP, 크면 TCP를 사용한다. DNS 메시지가 UDP 또는 TCP 패킷의 데이터로 포함된다.
+- Header : 첫 2바이트는 Transaction ID / 다음(16) 비트는 (0: Query, 1: Response) / 23, 24비트는 Recursive 질의, 응답 여부
 
 ---
 
@@ -198,6 +284,112 @@ EtherType : Ethernet Frame에 포함된 2 바이트 크기의 필드. 어떤 프
 
 Identity : 기기 자체 / Identifier : 기기를 구별할 수 있게 하는 요소들. 기종, 물리주소 등
 
+IP : Datagram을 Src -> Dst 전달함. Packet-switch 네트워크를 통해서. 긴 데이터를 쪼개 보내고, 재조립할 수 있음.
+
+- 기본 기능 : **Addressing, Fragmentation**
+- Routing : Dst까지 전달하기 위해 경로를 선택하는 작업
+
+**Message Format** : Header (20 ~ 60 바이트) + Data
+
+<table style="text-align:center;">
+  <tr>
+    <td colspan="4">Version (4)</td>
+    <td colspan="4">헤더 길이 (4)</td>
+    <td colspan="8">Type of Service (8)</td>
+    <td colspan="16">Total Length (16)</td>
+  </tr>
+  <tr>
+    <td colspan="16">Identification (16) = Datagram ID</td>
+    <td colspan="3">Flags (3)</td>
+    <td colspan="13">Fragmentation Offset (13)</td>
+  </tr>
+  <tr>
+    <td colspan="8">TTL (8)</td>
+    <td colspan="8">Protocol (8)</td>
+    <td colspan="16">Header Checksum (16)</td>
+  </tr>
+  <tr>
+    <td colspan="32">Source IP Address (32)</td>
+  </tr>
+  <tr>
+    <td colspan="32">Destination IP Address (32)</td>
+  </tr>
+  <tr>
+    <td colspan="32">Option + Padding IP (0 ~ 40 바이트)</td>
+  </tr>
+</table>
+
+- Version : IPv4 or IPv6  /  Header Length : 4 바이트 단위  /  Total Length : 데이터를 포함한 전체 길이. 바이트 단위
+- Type of Servie (Quality of the Service) : 요구되는 서비스 품질. 네트워크 혼잡 상태 정보
+- Flags : 쪼갬 플래그. 2번비트 : 쪼개지마라 (받는놈이 재조립을 못한다)  /  3번비트 : 뒤에 더 조각이 있다
+- Fragmentation Offset : 조각의 원래 위치 (8 바이트 단위). 쪼개져도 Id 필드는 같다.
+- Time To Live : 패킷의 수명. 라우터를 지날때마다 1씩 감소. 0이 되면 버려짐. 네트워크 낭비를 막기 위함
+- Protocol : 상위 레이어에서 사용된 프로토콜 종류. (1 ICMP / 6 TCP / 17 UDP)
+- **Header Checksum** : 에러 검출을 위한 필드. 수신자는 쳌섬을 포함해서 쳌섬 계산을 하면 0이 나와야 받아줌
+  - TTL 같은 값이 계속 바뀌기 때문에 라우터마다 다시 계산해줌
+  - 계산법 : 쳌섬을 제외한 헤더를 16비트씩 쪼개서 다 더한 후 1의 보수를 구함.
+- Option : 디버깅용. Source Route = 패킷의 이동 경로를 지정해줄 수 있음 / 그 외엔 안씀
+
+**Fragmentation** : 네트워크에서 허용하는 패킷의 크기가 작은 경우에 쪼개서 보냄
+
+- MTU (Maximum Transmit Unit) : 보낼 수 있는 Datagram의 최대 크기. (Header 크기 제외)
+
+```mermaid
+graph LR
+A[Total: 4020<br>ID: 14567<br>Flag: 000<br>Offset: 0]
+
+subgraph MTU 1400
+B1[Total: 1420<br>ID: 14567<br>Flag: 001<br>Offset: 0]
+B2[Total: 1420<br>ID: 14567<br>Flag: 001<br>Offset: 175]
+B3[Total: 1220<br>ID: 14567<br>Flag: 000<br>Offset: 350]
+end
+
+subgraph MTU 800
+C1[Total: 820<br>ID: 14567<br>Flag: 001<br>Offset: 175]
+C2[Total: 620<br>ID: 14567<br>Flag: 001<br>Offset: 275]
+end
+A-->B1
+A-->B2
+A-->B3
+B2-->C1
+B2-->C2
+```
+
+**Forwarding** : Direct와 Indirect로 나뉜다. Direct = Src와 Dst가 같은 네트워크에 잇을때 / Indirect = 다른 네트워크일 때
+
+- Direct Forwarding : 목적지가 같은 네트워크에 있는 것을 앎 -> 상대의 MAC을 구해서 Layer 2로 전달함
+  - 결국 패킷에 나타나는 주소는 (Src IP = 내 IP, Dst IP = 목적지 IP / Src MAC = 내 MAC, Dst MAC = **목적지** MAC)
+- Indirect Forwarding : 다른 네트워크다! -> Routing Table을 검사해서 다음 홉(라우터)의 IP를 찾고, MAC을 구함
+  - 결국 패킷에 나타나는 주소는 (Src IP = 내 IP, Dst IP = 목적지 IP / Src MAC = 내 MAC, Dst MAC = **라우터** MAC)
+- 과정
+  1. 내가 가진 Network Interface들의 서브넷이 목적지의 서브넷과 같은 게 하나라도 있는지 찾는다.
+  2. 있으면 Direct로 보냄. 없으면 Routing Table 조회 후 매칭된 쪽으로 보냄
+  3. 매칭된 엔트리가 여러개면 가장 많은 마스크 비트가 매칭된 쪽. 없으면 Default GW
+- Gateway Selection
+  1. 일단 Default GW에 보냈는데, 얘는 자기를 거치는 경로가 최적이 아님을 알고있음
+  2. 최적인 GW에게 포워드해주고, Source에게 ICMP Redirect 메시지를 보내서 Route-cache를 수정하도록 함
 
 
-[프로토콜 스택 그림]
+
+```mermaid
+graph TD
+subgraph Application
+7[Application Packet]
+end
+subgraph Transport
+4[TCP Segment]
+end
+subgraph Network
+3[IP Datagram]
+end
+subgraph Datalink
+2[Datalink Frame]
+end
+1[Physical Layer]
+
+7-->|Socket을 통해 Data, Src IP, Dst IP, Port 전달| 4
+4-->|Dst IP|3
+3-->|다음 홉 IP 주소 - Routing Table|2
+2-->|다음 홉 MAC 주소 - ARP, NDP|1
+```
+
